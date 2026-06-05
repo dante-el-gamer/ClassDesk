@@ -58,6 +58,7 @@ jobs:
         with:
           tagName: ${{ github.ref_name }}
           releaseName: ${{ github.ref_name }}
+          includeRelease: ${{ startsWith(github.ref, 'refs/tags/') }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           # Google Drive OAuth client ID — configure via GitHub repo secrets.
