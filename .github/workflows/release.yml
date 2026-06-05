@@ -6,6 +6,9 @@ on:
     tags: ['v*']
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
@@ -50,6 +53,8 @@ jobs:
 
       - name: Build and release with Tauri
         uses: tauri-apps/tauri-action@v0.6
+        with:
+          tagName: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           # Google Drive OAuth client ID — configure via GitHub repo secrets.
