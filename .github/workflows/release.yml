@@ -50,11 +50,14 @@ jobs:
 
       - name: Cache Rust dependencies
         uses: swatinem/rust-cache@v2
+        with:
+          workspaces: 'src-tauri'
 
       - name: Build and release with Tauri
         uses: tauri-apps/tauri-action@v0.6
         with:
           tagName: ${{ github.ref_name }}
+          releaseName: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           # Google Drive OAuth client ID — configure via GitHub repo secrets.
