@@ -4,10 +4,10 @@ schema: spec-driven
 context: |
   Project: gestion-puestos-clases (classroom seating manager)
   Description: Desktop app to visually manage classroom seating arrangements.
-  Tech stack: Undetected (greenfield project — no config files found)
-  Architecture: Undetected
-  Testing: Not configured (no test runner detected)
-  Style: Undetected
+  Tech stack: Tauri 2 + React 18 + TypeScript + Vite 5 + TailwindCSS 3 + Zustand 4
+  Architecture: Layered — React components + Zustand stores + Tauri commands + Rust backend (rusqlite)
+  Testing: Vitest (frontend, 79 unit tests) + cargo test (backend, 74+ tests)
+  Style: TypeScript strict, TailwindCSS utility classes, Radix UI primitives
 
 rules:
   proposal:
@@ -25,25 +25,25 @@ rules:
     - Keep tasks completable in one session
   apply:
     - Follow existing code patterns once established
-    tdd: false
-    test_command: ""
+    tdd: true
+    test_command: npm test
   verify:
-    test_command: ""
-    build_command: ""
+    test_command: npm test
+    build_command: npm run build
     coverage_threshold: 0
   archive:
     - Warn before merging destructive deltas
 
 testing:
-  strict_tdd: false
+  strict_tdd: true
   runner:
-    detected: false
-    framework: null
-    command: null
+    detected: true
+    framework: vitest
+    command: npm test
   layers:
     unit:
-      available: false
-      tool: null
+      available: true
+      tool: vitest
     integration:
       available: false
       tool: null
@@ -58,8 +58,8 @@ testing:
       available: false
       command: null
     type_checker:
-      available: false
-      command: null
+      available: true
+      command: tsc
     formatter:
       available: false
       command: null
