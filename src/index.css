@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html.dark {
+    --bg-primary: #1e1e2e;
+    --bg-secondary: #181825;
+    --bg-surface: #313244;
+    --text-primary: #cdd6f4;
+    --text-secondary: #a6adc8;
+    --text-muted: #6c7086;
+    --border-color: #45475a;
+    --accent: #89b4fa;
+    --accent-hover: #74c7ec;
+    color-scheme: dark;
+  }
+
+  html.darker {
+    --bg-primary: #0a0a14;
+    --bg-secondary: #0f0f1e;
+    --bg-surface: #18182d;
+    --text-primary: #b4b4d6;
+    --text-secondary: #8a8ab0;
+    --text-muted: #5a5a7a;
+    --border-color: #2a2a45;
+    --accent: #6a8ad4;
+    --accent-hover: #5a7ac4;
+  }
+}
+
+@layer utilities {
+  .bg-primary {
+    background-color: var(--bg-primary);
+  }
+  .bg-secondary {
+    background-color: var(--bg-secondary);
+  }
+  .bg-surface {
+    background-color: var(--bg-surface);
+  }
+  .text-primary {
+    color: var(--text-primary);
+  }
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+  .text-muted {
+    color: var(--text-muted);
+  }
+  .border-theme {
+    border-color: var(--border-color);
+  }
+}

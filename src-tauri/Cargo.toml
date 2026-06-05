@@ -1,0 +1,29 @@
+[package]
+name = "classroom-seating-manager"
+version = "0.1.0"
+description = "Classroom Seating Manager - desktop app to visually manage classroom seating"
+authors = ["you"]
+edition = "2021"
+
+[lib]
+name = "classroom_seating_manager_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.31", features = ["bundled"] }
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["rt"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+sha2 = "0.10"
+base64 = "0.22"
+rand = "0.8"
+opener = "0.7"
+urlencoding = "2"
+url = "2"
