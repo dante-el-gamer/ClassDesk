@@ -6,3 +6,6 @@ src-tauri/target
 Thumbs.db
 .env
 .env.local
+squashfs-root/
+*.AppImage
+*.AppImage.zsync
