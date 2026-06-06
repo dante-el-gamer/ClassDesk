@@ -15,12 +15,19 @@ use tauri::{LogicalSize, Manager};
 /// The frontend (Vite + React) will be added in Phase 2.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Linux (WebKitGTK) workaround: disable GPU compositing to avoid
-    // "Could not create default EGL display: EGL_BAD_PARAMETER" on
-    // systems without working EGL/GPU acceleration (e.g. Wayland, VMs,
-    // certain GPU drivers). Forces WebKit to use CPU rendering instead.
+    // Linux (WebKitGTK) workaround: avoid EGL/DMA-BUF initialization failures
+    // that cause "Could not create default EGL display: EGL_BAD_PARAMETER"
+    // on systems with certain GPUs (Intel UHD, older Mesa) or compositors.
+    //
+    // - WEBKIT_DISABLE_DMABUF_RENDERER=1 : disables DMA-BUF hw acceleration
+    //   (WebKitGTK >= 2.42; replaces removed WEBKIT_DISABLE_COMPOSITING_MODE)
+    // - WEBKIT_DISABLE_COMPOSITING_MODE=1 : legacy, harmless on newer versions
+    // Both set only if not already defined (respects user/system override).
     #[cfg(target_os = "linux")]
     {
+        if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+        }
         if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
             std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
         }
