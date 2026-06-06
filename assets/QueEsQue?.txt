@@ -1,0 +1,9 @@
+icon.png = el icono de la app con fondo con esquinas redondeado
+iconNR.png = el icono de la app sin fondo con esquinas redondeado
+fedora.png = logo de fedora
+ubuntu.png = logo de ubuntu
+debian.png = logo de debian
+windows10.png = logo de windows 10
+windows11.png = logo de windows 11
+github.svg = logo de github
+google.png = logo de google (vercion de 2026 con los degradados y eso)

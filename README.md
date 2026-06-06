@@ -1,6 +1,11 @@
-# ClassDeck
+# <img src="assets/iconNR.png" alt="ClassDeck" width="36" height="36" style="vertical-align: middle;"> ClassDeck
 
 Desktop app for teachers to visually manage classroom seating via drag-and-drop. Built with **Tauri 2 + React 18 + TypeScript**.
+
+<p align="center">
+  <img src="assets/github.svg" alt="GitHub" width="18" height="18" style="vertical-align: middle;">
+  <a href="https://github.com/dante-benitez/gestion-de-puestos-de-clases"><strong>dante-benitez/gestion-de-puestos-de-clases</strong></a>
+</p>
 
 ## Features
 
@@ -78,24 +83,24 @@ classdeck/
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-**Linux (Fedora/RHEL 43+):**
+**<img src="assets/fedora.png" alt="Fedora" width="20" height="20" style="vertical-align: middle;"> Linux (Fedora/RHEL 43+):**
 
 ```bash
 sudo dnf install gtk3-devel webkit2gtk4.1-devel libappindicator-gtk3-devel librsvg2-devel patchelf
 ```
 
-**Linux (Ubuntu/Debian):**
+**<img src="assets/ubuntu.png" alt="Ubuntu" width="20" height="20" style="vertical-align: middle;"> <img src="assets/debian.png" alt="Debian" width="20" height="20" style="vertical-align: middle;"> Linux (Ubuntu/Debian):**
 
 ```bash
 sudo apt install libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 ```
 
-**Windows:**
+**<img src="assets/windows11.png" alt="Windows 11" width="20" height="20" style="vertical-align: middle;"> <img src="assets/windows10.png" alt="Windows 10" width="20" height="20" style="vertical-align: middle;"> Windows:**
 
 - [Microsoft Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 - WebView2 (included in Windows 11, available for [Windows 10](https://developer.microsoft.com/en-us/microsoft-edge/webview2/))
 
-### Google OAuth Setup
+### <img src="assets/google.png" alt="Google" width="20" height="20" style="vertical-align: middle;"> Google OAuth Setup
 
 Drive sync requires a Google OAuth 2.0 Desktop app credential. You need a **Client ID** before running the app:
 

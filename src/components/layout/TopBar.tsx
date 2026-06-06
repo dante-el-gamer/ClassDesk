@@ -6,6 +6,8 @@ import LoginButton from "../auth/LoginButton";
 import AuthStatusDisplay from "../auth/AuthStatus";
 import SyncButton from "../sync/SyncButton";
 import SyncStatus from "../sync/SyncStatus";
+import NavLinks from "./NavLinks";
+import appLogo from "../../../assets/iconNR.png";
 
 export default function TopBar() {
   const authenticated = useAuthStore((s) => s.authenticated);
@@ -20,8 +22,9 @@ export default function TopBar() {
   }, [loadSyncStatus]);
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6 dark:border-gray-700 dark:bg-gray-900">
-      <h1 className="truncate text-base font-semibold sm:text-lg text-gray-800 dark:text-gray-100">
+    <header className="flex h-14 items-center border-b border-gray-200 bg-white px-4 sm:px-6 dark:border-gray-700 dark:bg-gray-900 flex-row-reverse justify-between">
+      <h1 className="flex items-center gap-2 truncate text-base font-semibold sm:text-lg text-gray-800 dark:text-gray-100">
+        <img src={appLogo} alt="ClassDeck" className="h-6 w-6 rounded-md" />
         ClassDeck
       </h1>
 
@@ -67,6 +70,8 @@ export default function TopBar() {
         {/* Sync push / pull buttons */}
         <SyncButton />
       </div>
+
+      <NavLinks />
     </header>
   );
 }

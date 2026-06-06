@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./stores/auth-store";
 import { useCourseStore } from "./stores/course-store";
 import { useGridStore } from "./stores/grid-store";
@@ -55,7 +56,7 @@ function LayoutSwitcher({
   );
 }
 
-export default function App() {
+function MainView() {
   const selectedCourseId = useCourseStore((s) => s.selectedCourseId);
   const loadCourses = useCourseStore((s) => s.loadCourses);
   const error = useCourseStore((s) => s.error);
@@ -133,5 +134,25 @@ export default function App() {
 
       <SettingsPanel />
     </div>
+  );
+}
+
+function PagePlaceholder() {
+  return (
+    <div className="flex h-full items-center justify-center text-gray-400">
+      <p className="text-lg">Coming soon</p>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<MainView />} />
+      <Route path="/documentacion" element={<PagePlaceholder />} />
+      <Route path="/versiones" element={<PagePlaceholder />} />
+      <Route path="/acerca-de" element={<PagePlaceholder />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
