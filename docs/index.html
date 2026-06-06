@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClassDeck — Gestión de puestos para el aula</title>
+  <meta name="description" content="Descarga ClassDeck, la aplicación para gestionar puestos del aula de forma simple y visual.">
+  <link rel="icon" href="icon.png">
+  <style>
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f4f5f7;
+      color: #1a1a2e;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== Header ===== */
+    header {
+      background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      padding: 3rem 1.5rem 2rem;
+      text-align: center;
+    }
+    header img {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 1rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.3);
+    }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -.5px;
+    }
+    header p {
+      max-width: 560px;
+      margin: .6rem auto 0;
+      font-size: 1.1rem;
+      color: #a8b2d1;
+    }
+    #version-badge {
+      display: inline-block;
+      margin-top: .8rem;
+      padding: .25rem .75rem;
+      background: rgba(255,255,255,.1);
+      border-radius: 20px;
+      font-size: .85rem;
+      color: #ccd6f6;
+    }
+
+    /* ===== Main Container ===== */
+    main { flex: 1; max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; width: 100%; }
+
+    /* ===== Platform Cards ===== */
+    .platforms { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+    @media (min-width: 660px) { .platforms { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 960px) { .platforms { grid-template-columns: 1fr 1fr 1fr; } }
+
+    .platform-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      border: 2px solid transparent;
+      transition: border-color .2s, box-shadow .2s;
+      position: relative;
+    }
+    .platform-card.recommended {
+      border-color: #0f3460;
+      box-shadow: 0 0 0 3px rgba(15,52,96,.15);
+    }
+    .platform-card.recommended::after {
+      content: 'RECOMENDADO';
+      position: absolute;
+      top: -.6rem;
+      right: 1rem;
+      background: #0f3460;
+      color: #fff;
+      font-size: .7rem;
+      font-weight: 700;
+      padding: .15rem .65rem;
+      border-radius: 8px;
+      letter-spacing: .5px;
+    }
+    .platform-card h2 {
+      font-size: 1.15rem;
+      margin-bottom: .3rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .platform-card .os-icon { font-size: 1.4rem; }
+    .platform-card .subtitle {
+      font-size: .85rem;
+      color: #666;
+      margin-bottom: 1rem;
+    }
+    .download-btn {
+      display: block;
+      width: 100%;
+      padding: .7rem 0;
+      border: none;
+      border-radius: 8px;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background .2s, transform .1s;
+      background: #e8eaf6;
+      color: #1a1a2e;
+    }
+    .download-btn:hover { background: #c5cae9; transform: translateY(-1px); }
+    .download-btn.primary {
+      background: #0f3460;
+      color: #fff;
+    }
+    .download-btn.primary:hover { background: #1a4a7a; }
+    .download-btn:active { transform: translateY(0); }
+    .download-btn .size {
+      font-weight: 400;
+      font-size: .8rem;
+      opacity: .7;
+    }
+    .download-btn.loading {
+      background: #e0e0e0;
+      pointer-events: none;
+      opacity: .7;
+    }
+
+    .alt-formats {
+      margin-top: .8rem;
+      font-size: .82rem;
+      color: #666;
+    }
+    .alt-formats a {
+      color: #0f3460;
+      text-decoration: none;
+    }
+    .alt-formats a:hover { text-decoration: underline; }
+
+    /* ===== Instructions ===== */
+    section.instructions {
+      margin-top: 2.5rem;
+    }
+    section.instructions h2 {
+      font-size: 1.4rem;
+      margin-bottom: .75rem;
+    }
+    details {
+      background: #fff;
+      border-radius: 10px;
+      margin-bottom: .75rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      overflow: hidden;
+    }
+    details summary {
+      padding: 1rem 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before {
+      content: '\25B6';
+      font-size: .8rem;
+      transition: transform .2s;
+    }
+    details[open] summary::before { transform: rotate(90deg); }
+    details .content {
+      padding: 0 1.25rem 1.25rem;
+      font-size: .92rem;
+    }
+    details .content code {
+      background: #f0f0f0;
+      padding: .15rem .4rem;
+      border-radius: 4px;
+      font-size: .88rem;
+    }
+    details .content pre {
+      background: #1a1a2e;
+      color: #ccd6f6;
+      padding: .85rem 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: .85rem;
+      margin: .6rem 0;
+    }
+
+    /* ===== Footer ===== */
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      font-size: .85rem;
+      color: #888;
+      border-top: 1px solid #e0e0e0;
+      margin-top: 2rem;
+    }
+    footer a { color: #0f3460; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ===== Loading / Error States ===== */
+    .loading-state, .error-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #888;
+    }
+    .error-state { color: #c62828; }
+    .hidden { display: none; }
+
+    /* ===== Animations ===== */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .platform-card { animation: fadeInUp .4s ease both; }
+    .platform-card:nth-child(2) { animation-delay: .1s; }
+    .platform-card:nth-child(3) { animation-delay: .2s; }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="icon.png" alt="ClassDeck">
+  <h1>ClassDeck</h1>
+  <p>Gestioná los puestos del aula de forma visual y simple</p>
+  <span id="version-badge">Cargando versión…</span>
+</header>
+
+<main>
+  <!-- Loading spinner -->
+  <div id="loading" class="loading-state"><p>Cargando última versión disponible…</p></div>
+  <div id="error" class="error-state hidden"><p>No se pudo obtener la última versión.</p><p style="font-size:.85rem;margin-top:.4rem">Podés ver los lanzamientos directamente en <a href="https://github.com/dante-el-gamer/ClassDesk/releases" target="_blank">GitHub</a>.</p></div>
+
+  <!-- Download cards -->
+  <div id="content" class="hidden">
+    <div class="platforms" id="platforms">
+      <!-- Linux -->
+      <div class="platform-card" data-os="linux" data-format="AppImage">
+        <h2><span class="os-icon">🐧</span> Linux</h2>
+        <div class="subtitle">AppImage · funciona en cualquier distribución</div>
+        <a class="download-btn primary" id="dl-linux" href="#" target="_blank">
+          Descargar AppImage <span class="size"></span>
+        </a>
+        <div class="alt-formats">
+          Alternativas:
+          <a href="#" id="dl-linux-deb" target="_blank">.deb</a> ·
+          <a href="#" id="dl-linux-rpm" target="_blank">.rpm</a>
+        </div>
+      </div>
+
+      <!-- Windows -->
+      <div class="platform-card" data-os="windows" data-format="exe">
+        <h2><span class="os-icon">🪟</span> Windows</h2>
+        <div class="subtitle">Instalador · Windows 10 y 11</div>
+        <a class="download-btn primary" id="dl-win" href="#" target="_blank">
+          Descargar .exe <span class="size"></span>
+        </a>
+        <div class="alt-formats">
+          Alternativa:
+          <a href="#" id="dl-win-msi" target="_blank">.msi</a>
+        </div>
+      </div>
+
+      <!-- macOS -->
+      <div class="platform-card" data-os="mac" data-format="dmg">
+        <h2><span class="os-icon">🍎</span> macOS</h2>
+        <div class="subtitle">Próximamente</div>
+        <button class="download-btn" disabled>En desarrollo</button>
+        <div class="alt-formats" style="margin-top:.8rem;font-size:.82rem;color:#888;">
+          Seguinos en GitHub para novedades
+        </div>
+      </div>
+    </div>
+
+    <!-- Instructions -->
+    <section class="instructions">
+      <h2>📖 Instalación</h2>
+
+      <details>
+        <summary>🐧 Linux — AppImage</summary>
+        <div class="content">
+          <p><strong>Requerimientos:</strong> WebKitGTK 4.1 (lo trae casi cualquier distro moderna).</p>
+          <ol>
+            <li>Descargá el archivo <code>.AppImage</code>.</li>
+            <li>Hacelo ejecutable: <code>chmod +x ClassDeck*.AppImage</code></li>
+            <li>Ejecutalo con doble clic o desde la terminal.</li>
+          </ol>
+          <p>💡 También podés moverlo a <code>~/Applications</code> y crear un acceso directo.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>🐧 Linux — Debian/Ubuntu (.deb)</summary>
+        <div class="content">
+          <pre>sudo dpkg -i ClassDeck*.deb</pre>
+          <p>Si faltan dependencias: <code>sudo apt install -f</code></p>
+        </div>
+      </details>
+
+      <details>
+        <summary>🐧 Linux — Fedora/RHEL (.rpm)</summary>
+        <div class="content">
+          <pre>sudo rpm -i ClassDeck*.rpm</pre>
+          <p>O con dnf: <code>sudo dnf install ./ClassDeck*.rpm</code></p>
+        </div>
+      </details>
+
+      <details>
+        <summary>🪟 Windows</summary>
+        <div class="content">
+          <p>Ejecutá el <code>.exe</code> y seguí las instrucciones del instalador.</p>
+          <p>También está disponible el <code>.msi</code> para instalación silenciosa o en red.</p>
+        </div>
+      </details>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <p>
+    <a href="https://github.com/dante-el-gamer/ClassDesk" target="_blank">GitHub</a> ·
+    <a href="https://github.com/dante-el-gamer/ClassDesk/issues" target="_blank">Reportar un problema</a>
+  </p>
+  <p style="margin-top:.4rem">ClassDeck — código abierto (MIT)</p>
+</footer>
+
+<script>
+(async function() {
+  const GH_REPO = 'dante-el-gamer/ClassDesk';
+  const API = `https://api.github.com/repos/${GH_REPO}/releases/latest`;
+
+  // Mapeo de nombre de asset a id del botón
+  const assetMap = {
+    'AppImage':       { btn: 'dl-linux',        size: true },
+    '.deb':           { btn: 'dl-linux-deb',    size: false },
+    '.rpm':           { btn: 'dl-linux-rpm',    size: false },
+    'setup.exe':      { btn: 'dl-win',          size: true },
+    'en-US.msi':      { btn: 'dl-win-msi',      size: false },
+  };
+
+  function detectOS() {
+    const p = navigator.platform.toLowerCase();
+    if (p.includes('win')) return 'windows';
+    if (p.includes('mac')) return 'mac';
+    return 'linux';
+  }
+
+  function formatSize(bytes) {
+    if (!bytes) return '';
+    const mb = bytes / (1024 * 1024);
+    return `(${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB)`;
+  }
+
+  try {
+    const res = await fetch(API, { headers: { Accept: 'application/vnd.github.v3+json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const release = await res.json();
+
+    const verEl = document.getElementById('version-badge');
+    verEl.textContent = `Última versión: ${release.tag_name}`;
+
+    // Index assets by name
+    const assets = {};
+    for (const a of release.assets) {
+      assets[a.name] = a;
+    }
+
+    // Fill download links
+    for (const [suffix, { btn: btnId, size }] of Object.entries(assetMap)) {
+      const asset = Object.entries(assets).find(([name]) => name.endsWith(suffix))?.[1];
+      const el = document.getElementById(btnId);
+      if (!el) continue;
+      if (asset) {
+        el.href = asset.browser_download_url;
+        if (size) {
+          el.innerHTML = el.innerHTML.replace(/<span.*/, '') + `<span class="size"> ${formatSize(asset.size)}</span>`;
+        }
+      } else {
+        el.style.opacity = '.4';
+        el.style.pointerEvents = 'none';
+      }
+    }
+
+    // Mark recommended OS
+    const os = detectOS();
+    const card = document.querySelector(`.platform-card[data-os="${os}"]`);
+    if (card) card.classList.add('recommended');
+
+    // Hide loading, show content
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('content').classList.remove('hidden');
+  } catch (err) {
+    console.warn('Failed to fetch release:', err);
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('error').classList.remove('hidden');
+    // Still show static links to GitHub releases
+    document.getElementById('content').classList.remove('hidden');
+    document.querySelectorAll('.download-btn.primary').forEach(el => {
+      el.href = `https://github.com/${GH_REPO}/releases`;
+      el.target = '_blank';
+    });
+  }
+})();
+</script>
+</body>
+</html>
