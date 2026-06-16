@@ -1,6 +1,6 @@
 [package]
 name = "classdeck"
-version = "0.1.0"
+version = "0.1.2"
 description = "ClassDeck - desktop app to visually manage classroom seating"
 authors = ["you"]
 edition = "2021"

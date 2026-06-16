@@ -15,14 +15,12 @@ use tauri::{LogicalSize, Manager};
 /// The frontend (Vite + React) will be added in Phase 2.
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    // Linux (WebKitGTK) workaround: avoid EGL/DMA-BUF initialization failures
-    // that cause "Could not create default EGL display: EGL_BAD_PARAMETER"
-    // on systems with certain GPUs (Intel UHD, older Mesa) or compositors.
+    // Linux env vars (WEBKIT_DISABLE_DMABUF_RENDERER, WEBKIT_DISABLE_COMPOSITING_MODE,
+    // GDK_BACKEND) are set EARLIER in main.rs::setup_linux_env() — before shared
+    // library constructors in GTK/WebKit/Mesa have a chance to initialize EGL.
     //
-    // - WEBKIT_DISABLE_DMABUF_RENDERER=1 : disables DMA-BUF hw acceleration
-    //   (WebKitGTK >= 2.42; replaces removed WEBKIT_DISABLE_COMPOSITING_MODE)
-    // - WEBKIT_DISABLE_COMPOSITING_MODE=1 : legacy, harmless on newer versions
-    // Both set only if not already defined (respects user/system override).
+    // This block is a safety net for non-standard entry points (tests, benchmarks,
+    // FFI callers) that skip main.rs. The check ensures system/user overrides win.
     #[cfg(target_os = "linux")]
     {
         if std::env::var("WEBKIT_DISABLE_DMABUF_RENDERER").is_err() {
@@ -30,6 +28,9 @@ pub fn run() {
         }
         if std::env::var("WEBKIT_DISABLE_COMPOSITING_MODE").is_err() {
             std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        }
+        if std::env::var("GDK_BACKEND").is_err() {
+            std::env::set_var("GDK_BACKEND", "x11");
         }
     }
 
