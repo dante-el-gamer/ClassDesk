@@ -13,7 +13,7 @@
 #   GDK_BACKEND=x11
 #
 # Libraries removed from the AppDir (system fallback via ld.so):
-#   libEGL*, libGLESv2*, libgbm*, libGLdispatch*
+#   libEGL*, libGLESv2*, libgbm*, libGLdispatch*, libwayland-*
 
 set -euo pipefail
 
@@ -98,10 +98,15 @@ export GDK_BACKEND="${GDK_BACKEND:-x11}"' "$APPRUN"
     echo "Patched AppRun with Mesa/EGL workaround env vars."
 fi
 
-# ─── 2. Remove bundled Mesa/EGL libraries ───────────────────────────────
+# ─── 2. Remove bundled Mesa/EGL + Wayland libraries ──────────────────────
 # These are incompatible across distros when bundled in the AppImage.
-# Removing them forces ld.so to fall back to system Mesa libraries.
-MESA_LIB_PATTERNS=(
+# Removing them forces ld.so to fall back to system libraries.
+# - Mesa/EGL: conflicts between Ubuntu 24.04 Mesa and Fedora 43 Intel driver
+# - libwayland-*: Ubuntu 24.04 Wayland libs crash on Fedora 43 even with
+#   GDK_BACKEND=x11, because they get loaded via LD_LIBRARY_PATH and
+#   trigger EGL initialization through libepoxy/runtime loading.
+REMOVE_PATTERNS=(
+    # Mesa/EGL
     "$APPDIR"/lib/x86_64-linux-gnu/libEGL*
     "$APPDIR"/usr/lib/x86_64-linux-gnu/libEGL*
     "$APPDIR"/lib/x86_64-linux-gnu/libGLESv2*
@@ -110,10 +115,23 @@ MESA_LIB_PATTERNS=(
     "$APPDIR"/usr/lib/x86_64-linux-gnu/libgbm*
     "$APPDIR"/lib/x86_64-linux-gnu/libGLdispatch*
     "$APPDIR"/usr/lib/x86_64-linux-gnu/libGLdispatch*
+    # Wayland (causes EGL_BAD_PARAMETER when bundled from Ubuntu on Fedora)
+    "$APPDIR"/usr/lib/libwayland-client*
+    "$APPDIR"/usr/lib/libwayland-server*
+    "$APPDIR"/usr/lib/libwayland-cursor*
+    "$APPDIR"/usr/lib/libwayland-egl*
+    "$APPDIR"/lib/x86_64-linux-gnu/libwayland-client*
+    "$APPDIR"/usr/lib/x86_64-linux-gnu/libwayland-client*
+    "$APPDIR"/lib/x86_64-linux-gnu/libwayland-server*
+    "$APPDIR"/usr/lib/x86_64-linux-gnu/libwayland-server*
+    "$APPDIR"/lib/x86_64-linux-gnu/libwayland-cursor*
+    "$APPDIR"/usr/lib/x86_64-linux-gnu/libwayland-cursor*
+    "$APPDIR"/lib/x86_64-linux-gnu/libwayland-egl*
+    "$APPDIR"/usr/lib/x86_64-linux-gnu/libwayland-egl*
 )
 
 REMOVED=0
-for pattern in "${MESA_LIB_PATTERNS[@]}"; do
+for pattern in "${REMOVE_PATTERNS[@]}"; do
     for f in $pattern; do
         if [ -f "$f" ]; then
             rm -f "$f"
@@ -124,9 +142,9 @@ for pattern in "${MESA_LIB_PATTERNS[@]}"; do
 done
 
 if [ "$REMOVED" -eq 0 ]; then
-    echo "No bundled Mesa/EGL libraries found to remove."
+    echo "No bundled Mesa/EGL/Wayland libraries found to remove."
 else
-    echo "Removed $REMOVED bundled Mesa/EGL libraries — system libraries will be used."
+    echo "Removed $REMOVED bundled graphics libraries — system libraries will be used."
 fi
 
 # ─── 3. Re-pack if input was an AppImage ────────────────────────────────
