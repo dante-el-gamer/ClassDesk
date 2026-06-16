@@ -34,7 +34,8 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libsoup-3.0-dev \
-            libjavascriptcoregtk-4.1-dev
+            libjavascriptcoregtk-4.1-dev \
+            squashfs-tools
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -53,6 +54,29 @@ jobs:
         with:
           workspaces: 'src-tauri'
 
+      - name: Build with Tauri
+        run: npm run tauri build
+
+      - name: Install appimagetool (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo wget -q "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" -O /usr/local/bin/appimagetool
+          sudo chmod +x /usr/local/bin/appimagetool
+
+      - name: Patch AppImage (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          APPIMAGE=$(ls src-tauri/target/release/bundle/appimage/*.AppImage 2>/dev/null | head -1)
+          if [ -n "$APPIMAGE" ]; then
+            echo "Patching $APPIMAGE ..."
+            # appimagetool is itself an AppImage; extract-and-run bypasses FUSE
+            APPIMAGE_EXTRACT_AND_RUN=1 bash scripts/patch-appimage-apprun.sh "$APPIMAGE"
+          else
+            echo "No AppImage found to patch."
+          fi
+        env:
+          NO_STRIP: "true"
+
       - name: Set release tag
         id: vars
         shell: bash
@@ -63,13 +87,15 @@ jobs:
             echo "tag=" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build and release with Tauri
-        uses: tauri-apps/tauri-action@v0.6
+      - name: Create release and upload artifacts
+        if: steps.vars.outputs.tag != ''
+        uses: softprops/action-gh-release@v2
         with:
-          tagName: ${{ steps.vars.outputs.tag }}
-          releaseName: ${{ steps.vars.outputs.tag }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          # Google Drive OAuth client ID — configure via GitHub repo secrets.
-          # Placeholder value (for local/dev reference): your-client-id.apps.googleusercontent.com
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          tag_name: ${{ steps.vars.outputs.tag }}
+          files: |
+            src-tauri/target/release/bundle/**/*.deb
+            src-tauri/target/release/bundle/**/*.rpm
+            src-tauri/target/release/bundle/**/*.AppImage
+            src-tauri/target/release/bundle/**/*.msi
+            src-tauri/target/release/bundle/**/*.exe
+          fail_on_unmatched_files: false

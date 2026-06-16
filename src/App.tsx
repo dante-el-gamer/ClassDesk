@@ -8,10 +8,12 @@ import { useCommandStore } from "./stores/command-store";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import Sidebar from "./components/layout/Sidebar";
 import TopBar from "./components/layout/TopBar";
+import PageLayout from "./components/layout/PageLayout";
 import StudentRoster from "./components/course/StudentRoster";
 import SeatingGrid from "./components/grid/SeatingGrid";
 import SettingsPanel from "./components/settings/SettingsPanel";
 import type { SidebarPosition } from "./types";
+import { DocumentationPage, ChangelogPage, AboutPage } from "./pages";
 
 function LayoutSwitcher({
   position,
@@ -137,21 +139,15 @@ function MainView() {
   );
 }
 
-function PagePlaceholder() {
-  return (
-    <div className="flex h-full items-center justify-center text-gray-400">
-      <p className="text-lg">Coming soon</p>
-    </div>
-  );
-}
-
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<MainView />} />
-      <Route path="/documentacion" element={<PagePlaceholder />} />
-      <Route path="/versiones" element={<PagePlaceholder />} />
-      <Route path="/acerca-de" element={<PagePlaceholder />} />
+      <Route element={<PageLayout />}>
+        <Route path="/documentacion" element={<DocumentationPage />} />
+        <Route path="/versiones" element={<ChangelogPage />} />
+        <Route path="/acerca-de" element={<AboutPage />} />
+      </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

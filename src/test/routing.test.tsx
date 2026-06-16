@@ -28,40 +28,46 @@ describe("App routing", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders placeholder content at /documentacion", () => {
+  it("renders DocumentationPage content at /documentacion", () => {
     render(
       <MemoryRouter initialEntries={["/documentacion"]}>
         <App />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Coming soon")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /documentación/i }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText("Select a course to manage students"),
     ).not.toBeInTheDocument();
   });
 
-  it("renders placeholder content at /versiones", () => {
+  it("renders ChangelogPage content at /versiones", () => {
     render(
       <MemoryRouter initialEntries={["/versiones"]}>
         <App />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Coming soon")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /versiones/i }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText("Select a course to manage students"),
     ).not.toBeInTheDocument();
   });
 
-  it("renders placeholder content at /acerca-de", () => {
+  it("renders AboutPage content at /acerca-de", () => {
     render(
       <MemoryRouter initialEntries={["/acerca-de"]}>
         <App />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Coming soon")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /acerca de/i }),
+    ).toBeInTheDocument();
   });
 
   it("redirects unknown routes to root view", () => {
