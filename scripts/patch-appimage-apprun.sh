@@ -4,7 +4,7 @@
 #   2. Remove bundled Mesa/EGL libraries (use system ones at runtime)
 #
 # Usage:
-#   patch-appimage-apprun.sh <appdir>          # patch AppDir (no repack)
+#   patch-appimage-apprun.sh <appdir>          # patch AppDir in-place (no repack)
 #   patch-appimage-apprun.sh <AppImage>        # extract → patch → repack (in-place)
 #
 # Env vars injected into AppRun:
@@ -18,7 +18,6 @@
 set -euo pipefail
 
 INPUT="${1:?Usage: $0 <appdir|AppImage>}"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WORKDIR=""
 
 cleanup() {
@@ -29,28 +28,48 @@ cleanup() {
 trap cleanup EXIT
 
 # ─── Determine input type ───────────────────────────────────────────────
+REPACK=false
 if [ -d "$INPUT" ]; then
     APPDIR="$INPUT"
-    REPACK=false
+    echo "Input is an AppDir at $APPDIR"
 elif [ -f "$INPUT" ]; then
     INPUT_FILE="$(realpath "$INPUT")"
     WORKDIR="$(mktemp -d)"
-    echo "Extracting AppImage to $WORKDIR ..."
+    echo "Extracting AppImage $INPUT_FILE ..."
 
+    # Try unsquashfs first
     if command -v unsquashfs &>/dev/null; then
-        unsquashfs -d "$WORKDIR/squashfs-root" "$INPUT_FILE" >/dev/null 2>&1
+        echo "  Method: unsquashfs ..."
+        if ! unsquashfs -d "$WORKDIR/squashfs-root" "$INPUT_FILE"; then
+            echo "  unsquashfs failed, trying --appimage-extract ..."
+            cd "$WORKDIR"
+            if ! APPIMAGE_EXTRACT_AND_RUN=1 "$INPUT_FILE" --appimage-extract; then
+                echo "ERROR: all extraction methods failed"
+                echo "  unsquashfs: available but failed"
+                echo "  --appimage-extract: available but failed"
+                cd "$OLDPWD"
+                exit 1
+            fi
+            cd "$OLDPWD"
+        fi
     elif [ -x "$INPUT_FILE" ]; then
-        APPIMAGE_EXTRACT_AND_RUN=1 "$INPUT_FILE" --appimage-extract >/dev/null 2>&1
-        # --appimage-extract extracts to ./squashfs-root in CWD
-        mv squashfs-root "$WORKDIR/" 2>/dev/null || true
+        echo "  Method: --appimage-extract ..."
+        cd "$WORKDIR"
+        if ! APPIMAGE_EXTRACT_AND_RUN=1 "$INPUT_FILE" --appimage-extract; then
+            echo "ERROR: --appimage-extract failed"
+            cd "$OLDPWD"
+            exit 1
+        fi
+        cd "$OLDPWD"
     else
-        echo "ERROR: cannot extract AppImage — need unsquashfs or --appimage-extract support"
+        echo "ERROR: cannot extract — need unsquashfs or executable AppImage"
         exit 1
     fi
 
     APPDIR="$WORKDIR/squashfs-root"
     if [ ! -d "$APPDIR" ]; then
-        echo "ERROR: extraction failed"
+        echo "ERROR: extraction produced no squashfs-root directory"
+        ls -la "$WORKDIR/" 2>/dev/null || true
         exit 1
     fi
     REPACK=true
@@ -63,6 +82,7 @@ fi
 APPRUN="$APPDIR/AppRun"
 if [ ! -f "$APPRUN" ]; then
     echo "ERROR: AppRun not found at $APPRUN"
+    ls -la "$APPDIR/" 2>/dev/null || true
     exit 1
 fi
 
@@ -80,8 +100,8 @@ fi
 
 # ─── 2. Remove bundled Mesa/EGL libraries ───────────────────────────────
 # These are incompatible across distros when bundled in the AppImage.
-# Removing them forces ld.so to fall back to the system Mesa libraries.
-MESA_LIBS=(
+# Removing them forces ld.so to fall back to system Mesa libraries.
+MESA_LIB_PATTERNS=(
     "$APPDIR"/lib/x86_64-linux-gnu/libEGL*
     "$APPDIR"/usr/lib/x86_64-linux-gnu/libEGL*
     "$APPDIR"/lib/x86_64-linux-gnu/libGLESv2*
@@ -93,7 +113,7 @@ MESA_LIBS=(
 )
 
 REMOVED=0
-for pattern in "${MESA_LIBS[@]}"; do
+for pattern in "${MESA_LIB_PATTERNS[@]}"; do
     for f in $pattern; do
         if [ -f "$f" ]; then
             rm -f "$f"
@@ -111,15 +131,22 @@ fi
 
 # ─── 3. Re-pack if input was an AppImage ────────────────────────────────
 if [ "$REPACK" = true ]; then
-    if ! command -v appimagetool &>/dev/null; then
-        echo "ERROR: appimagetool not found, cannot repack."
-        echo "Install from: https://github.com/AppImage/AppImageKit/releases"
+    APPIMAGETOOL=""
+    for candidate in appimagetool /usr/local/bin/appimagetool; do
+        if command -v "$candidate" &>/dev/null; then
+            APPIMAGETOOL="$candidate"
+            break
+        fi
+    done
+
+    if [ -z "$APPIMAGETOOL" ]; then
+        echo "ERROR: appimagetool not found on PATH or /usr/local/bin"
+        echo "  PATH=$PATH"
         exit 1
     fi
 
-    # Overwrite the original AppImage with the patched version
     echo "Repacking patched AppImage to $INPUT_FILE ..."
-    NO_STRIP=1 appimagetool "$APPDIR" "$INPUT_FILE"
+    NO_STRIP=1 "$APPIMAGETOOL" "$APPDIR" "$INPUT_FILE"
     chmod +x "$INPUT_FILE"
     echo "Done! Patched AppImage: $INPUT_FILE ($(du -h "$INPUT_FILE" | cut -f1))"
 fi
