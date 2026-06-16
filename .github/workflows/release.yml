@@ -54,6 +54,29 @@ jobs:
         with:
           workspaces: 'src-tauri'
 
+      - name: Set version from git tag
+        id: version
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "Overriding version to $VERSION from tag ${{ github.ref_name }}"
+
+            # tauri.conf.json — controls bundle filenames (ClassDeck_{version}_amd64.AppImage)
+            jq ".version = \"$VERSION\"" src-tauri/tauri.conf.json > src-tauri/tauri.conf.json.tmp
+            mv src-tauri/tauri.conf.json.tmp src-tauri/tauri.conf.json
+
+            # package.json — metadata consistency
+            npm version "$VERSION" --no-git-tag-version --allow-same-version 2>/dev/null || true
+
+            # Cargo.toml — crate version
+            sed -i "s/^version = \".*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml
+          else
+            echo "version=$(jq -r '.version' src-tauri/tauri.conf.json)" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build with Tauri
         run: npm run tauri build
 
